@@ -22,6 +22,11 @@ class StreamMenuPage extends StatelessWidget {
           'https://m2.merichunidya.com:999/hls/capespnprem.m3u8?md5=bdW_qvbWrywibbKXLCCAmA&expires=1746659495',
     },
     {
+      'title': 'SURAMERICANA',
+      'url':
+          'https://socio.crackstreamslivehd.com/global/fox1ar/index.m3u8?token=b2fe43f9c1b19b289b027b761f17aac34fcb1e10-00-1747294892-1747262492&ip=190.60.194.112',
+    },
+    {
       'title': 'Win Sports+',
       'url':
           'https://m1.merichunidya.com:999/hls/winsportsplus.m3u8?md5=mTiRAnOxwm3AI7y7Su8pvQ&expires=1746658184',
