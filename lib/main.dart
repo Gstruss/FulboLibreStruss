@@ -1,45 +1,148 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:video_player/video_player.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(
+    MaterialApp(
+      title: 'Sports Streaming',
+      theme: ThemeData.dark(),
+      home: StreamMenuPage(),
+    ),
+  );
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Reproductor Externo',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: HomePage(),
-    );
-  }
-}
-
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
-
-  // Función para lanzar la URL en el navegador
-  Future<void> _launchURL() async {
-    const url =
-        'https://www.capoplayer.net/play/winsportsplus.php'; // La URL que proporcionaste
-    if (await canLaunch(url)) {
-      await launch(url); // Lanza la URL en el navegador del dispositivo
-    } else {
-      throw 'No se puede abrir la URL $url';
-    }
-  }
+// -----------------------
+// Página principal (menú)
+// -----------------------
+class StreamMenuPage extends StatelessWidget {
+  final List<Map<String, String>> streams = [
+    {
+      'title': 'ESPN Premium',
+      'url':
+          'https://m2.merichunidya.com:999/hls/capespnprem.m3u8?md5=bdW_qvbWrywibbKXLCCAmA&expires=1746659495',
+    },
+    {
+      'title': 'Win Sports+',
+      'url':
+          'https://m1.merichunidya.com:999/hls/winsportsplus.m3u8?md5=mTiRAnOxwm3AI7y7Su8pvQ&expires=1746658184',
+    },
+    {
+      'title': 'TNT Argentina',
+      'url':
+          'https://m3.merichunidya.com:999/hls/captntarg.m3u8?md5=SDm5ZTfZvahfJ63lLnhzPg&expires=1746659610',
+    },
+    {
+      'title': 'Gol Perú',
+      'url':
+          'https://m1.merichunidya.com:999/hls/capgolperu.m3u8?md5=d5njHJebNPBwIH-ugZRTxg&expires=1746659670',
+    },
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Abrir URL en navegador')),
+      appBar: AppBar(title: Text('Sports Streaming')),
+      body: ListView.builder(
+        padding: EdgeInsets.all(16),
+        itemCount: streams.length,
+        itemBuilder: (context, index) {
+          final stream = streams[index];
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(vertical: 20),
+              ),
+              child: Text(stream['title']!, style: TextStyle(fontSize: 18)),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (context) => VideoPage(
+                          title: stream['title']!,
+                          videoUrl: stream['url']!,
+                        ),
+                  ),
+                );
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// -----------------------
+// Página del reproductor
+// -----------------------
+class VideoPage extends StatefulWidget {
+  final String title;
+  final String videoUrl;
+
+  VideoPage({required this.title, required this.videoUrl});
+
+  @override
+  _VideoPageState createState() => _VideoPageState();
+}
+
+class _VideoPageState extends State<VideoPage> {
+  late VideoPlayerController _controller;
+
+  final Map<String, String> customHeaders = {
+    'User-Agent':
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:138.0) Gecko/20100101 Firefox/138.0',
+    'Accept': '*/*',
+    'Accept-Language': 'en-US,en;q=0.5',
+    'Accept-Encoding': 'gzip, deflate, br, zstd',
+    'Referer': 'https://capo5play.com/',
+    'Origin': 'https://capo5play.com',
+    'Connection': 'keep-alive',
+  };
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = VideoPlayerController.networkUrl(
+        Uri.parse(widget.videoUrl),
+        httpHeaders: customHeaders,
+      )
+      ..initialize().then((_) {
+        setState(() {});
+        _controller.play();
+      });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(widget.title)),
       body: Center(
-        child: ElevatedButton(
-          onPressed: _launchURL,
-          child: Text('Abrir Win Sports Plus'),
+        child:
+            _controller.value.isInitialized
+                ? AspectRatio(
+                  aspectRatio: _controller.value.aspectRatio,
+                  child: VideoPlayer(_controller),
+                )
+                : CircularProgressIndicator(),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          setState(() {
+            _controller.value.isPlaying
+                ? _controller.pause()
+                : _controller.play();
+          });
+        },
+        child: Icon(
+          _controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
         ),
       ),
     );
