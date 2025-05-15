@@ -1,6 +1,6 @@
-# myapp
+# Flutter app with Stream content
 
-A new Flutter project.
+A new LEGAL Flutter project.
 
 ## Getting Started
 
